@@ -1,0 +1,55 @@
+{
+  "name": "lemonsqueezy-mcp-server",
+  "version": "1.0.0",
+  "description": "Universal Semantic Bridge - Lemon Squeezy SDK as MCP Server with optional Salesforce CRM integration",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "lemonsqueezy-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "SETUP.md",
+    "ENV_EXAMPLE.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "start": "node dist/index.js",
+    "dev": "tsx index.ts",
+    "watch": "tsc --watch"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "lemonsqueezy",
+    "payment",
+    "sdk",
+    "bridge",
+    "salesforce",
+    "crm",
+    "integration"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.700.0",
+    "@lemonsqueezy/lemonsqueezy.js": "^4.0.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "dotenv": "^16.4.5",
+    "firebase-admin": "^13.6.0",
+    "jsforce": "^3.10.10",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.11.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
