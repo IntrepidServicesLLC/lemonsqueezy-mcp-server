@@ -10,6 +10,10 @@ dist/
 .env.local
 .env.*.local
 
+# Personal/local configuration files
+QUICK_START.local.md
+*.local.md
+
 # IDE
 .vscode/
 .idea/

@@ -34,9 +34,9 @@ Follow these steps to get your Lemon Squeezy MCP Server running:
    - Copy it
 
 2. **Configure your AI client:**
-   - **Cursor:** Edit `~/.cursor/mcp.json`
    - **VS Code:** Settings → Extensions → MCP
-   - **Claude Desktop:** Edit config file (see README)
+   - **Claude Desktop:** Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows)
+   - **Other MCP clients:** Refer to your client's documentation for MCP server configuration
 
 3. **Add this configuration:**
    ```json
@@ -136,7 +136,7 @@ If you want to add Salesforce CRM integration later using AWS Secrets Manager:
 
 ### Step 2: Update Your MCP Configuration
 
-Add these environment variables to your MCP config file (`~/.cursor/mcp.json` or similar):
+Add these environment variables to your MCP config file (location depends on your AI client):
 
 ```json
 {
@@ -220,7 +220,7 @@ Replace `us-east-1` with your region, `account` with your AWS account ID, and `y
 
 ### Step 5: Restart Your AI Client
 
-Save the MCP config file and restart Cursor/VS Code/Claude Desktop completely.
+Save the MCP config file and restart your AI client completely.
 
 **That's it!** The server will automatically fetch credentials from AWS Secrets Manager when you use Salesforce tools.
 

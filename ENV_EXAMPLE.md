@@ -66,6 +66,16 @@ LEMONSQUEEZY_TEST_API_KEY=your_test_api_key_here
 # POLL_FAILED_PAYMENTS=true
 # POLL_INTERVAL_MINUTES=5
 # WEBHOOK_LOG_PATH=/path/to/webhook.log
+
+# Webhook Listener (Sprint 2 - Event Engine)
+# Real-time webhook processing replaces file watching
+#
+# WEBHOOK_PORT=3000
+# LEMONSQUEEZY_WEBHOOK_SECRET=your_webhook_signing_secret_here
+# ENABLE_NGROK=true
+#
+# Note: If ENABLE_NGROK=true, ngrok will create a public tunnel.
+# The public URL will be logged on startup - use it to configure your Lemon Squeezy webhook.
 ```
 
 **Note:** Copy this content to a `.env` file (not `.env.example`) for local development. The `.env` file is already in `.gitignore` and won't be committed.
