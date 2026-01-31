@@ -10,6 +10,9 @@ dist/
 .env.local
 .env.*.local
 
+# MCP registry / publisher auth (local only)
+.mcpregistry_*
+
 # Personal/local configuration files
 QUICK_START.local.md
 *.local.md
@@ -47,8 +50,6 @@ SALESFORCE_TEST_RESULTS.md
 # Notes and archives
 notes.yaml
 notes_archive/
-**/notes_archive/
-
-# Bugs directory
+**/notes_archive/# Bugs directory
 bugs/
 **/bugs/

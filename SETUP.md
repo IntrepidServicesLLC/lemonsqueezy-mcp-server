@@ -39,6 +39,23 @@ Follow these steps to get your Lemon Squeezy MCP Server running:
    - **Other MCP clients:** Refer to your client's documentation for MCP server configuration
 
 3. **Add this configuration:**
+
+   **Option A — One-copy-paste (npx, after npm publish):**
+   ```json
+   {
+     "mcpServers": {
+       "lemonsqueezy": {
+         "command": "npx",
+         "args": ["-y", "lemonsqueezy-mcp-server"],
+         "env": {
+           "LEMONSQUEEZY_API_KEY": "paste_your_key_here"
+         }
+       }
+     }
+   }
+   ```
+
+   **Option B — Local path (development):**
    ```json
    {
      "mcpServers": {

@@ -1,8 +1,14 @@
 import * as dotenv from "dotenv";
+import * as path from "path";
+import { fileURLToPath } from "url";
 import { lemonSqueezySetup } from "@lemonsqueezy/lemonsqueezy.js";
 import { logger } from "./utils/logger.js";
 
-dotenv.config();
+// Load .env relative to script location
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const rootDir = path.resolve(__dirname, "..");
+dotenv.config({ path: path.join(rootDir, ".env") });
 
 export interface Config {
   apiKey: string;
@@ -30,10 +36,17 @@ export interface Config {
 // Validate and initialize Lemon Squeezy SDK
 // Priority: LEMONSQUEEZY_API_KEY (production) > LEMONSQUEEZY_TEST_API_KEY (test)
 function getApiKey(): string {
-  const apiKey = process.env.LEMONSQUEEZY_API_KEY || process.env.LEMONSQUEEZY_TEST_API_KEY;
+  const apiKey = process.env.LEMONSQUEEZY_API_KEY || 
+                 process.env.LEMON_SQUEEZY_API_KEY ||
+                 process.env.LEMONSQUEEZY_TEST_API_KEY ||
+                 process.env.LEMON_SQUEEZY_TEST_API_KEY;
   if (!apiKey) {
     const error = new Error("LEMONSQUEEZY_API_KEY or LEMONSQUEEZY_TEST_API_KEY must be set");
-    logger.fatal(error);
+    logger.fatal({ 
+      cwd: process.cwd(), 
+      envPath: path.join(rootDir, ".env"),
+      envKeys: Object.keys(process.env).filter(k => k.includes("LEMONSQUEEZY"))
+    }, "API Key missing");
     throw error;
   }
   return apiKey;

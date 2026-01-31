@@ -35,7 +35,7 @@ Open your terminal (Command Prompt on Windows, Terminal on Mac) and run these co
 
 ```bash
 # 1. Download the project
-git clone https://github.com/MichaelWeed/lemonsqueezy-mcp-server.git
+git clone https://github.com/IntrepidServicesLLC/lemonsqueezy-mcp-server.git
 cd lemonsqueezy-mcp-server
 
 # 2. Install the necessary files
@@ -48,7 +48,24 @@ npm run build
 ### 4. Connect to Your AI Editor
 The exact steps depend on which AI editor you're using. Here are the most common:
 
-**For VS Code:**
+**One-copy-paste setup (Claude Desktop / Cursor / npx):**  
+Add this to your MCP config file (e.g. `claude_desktop_config.json` or Cursor MCP settings). Replace `YOUR_KEY_HERE` with your Lemon Squeezy API key.
+
+```json
+"mcpServers": {
+  "lemonsqueezy": {
+    "command": "npx",
+    "args": ["-y", "lemonsqueezy-mcp-server"],
+    "env": {
+      "LEMONSQUEEZY_API_KEY": "YOUR_KEY_HERE"
+    }
+  }
+}
+```
+
+*(Requires the package to be [published on npm](https://www.npmjs.com/package/lemonsqueezy-mcp-server). For local development, use the path-based config below.)*
+
+**For VS Code (local path):**
 1.  Open VS Code Settings
 2.  Go to Extensions → MCP
 3.  Add a new MCP server with:
@@ -56,9 +73,9 @@ The exact steps depend on which AI editor you're using. Here are the most common
     *   **Args:** `["/absolute/path/to/lemonsqueezy-mcp-server/dist/index.js"]`
     *   **Env:** `{"LEMONSQUEEZY_API_KEY": "your_api_key_here"}`
 
-**For Claude Desktop:**
+**For Claude Desktop (local path):**
 1.  Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows)
-2.  Add the same configuration as above
+2.  Add the same configuration as above (command `node`, args with full path to `dist/index.js`)
 3.  Restart Claude Desktop
 
 **For Other MCP Clients:**
@@ -109,6 +126,8 @@ The tools for Salesforce (like `sync_customer_to_crm`) will automatically appear
 ## 🛠️ Advanced User Level: Technical Documentation
 
 **Who is this for?** Developers, Architects, and DevOps engineers looking for deep technical details, architecture diagrams, security compliance, and deployment strategies.
+
+**Containers:** This repo has both a **Containerfile** and a **Dockerfile** with the same build. The Dockerfile exists so registries (e.g. Smithery) and CI that look for the filename `Dockerfile` can discover and build the image. You can build with Podman or Docker; see **[CONTAINERS.md](./CONTAINERS.md)** for why both exist and how to build.
 
 For a comprehensive breakdown of the system architecture, code modules, security protocols, and enterprise deployment guides, please refer to the:
 

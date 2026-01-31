@@ -1,5 +1,10 @@
-# Primary container build file. Prefer Podman: podman build -f Containerfile -t lemonsqueezy-mcp .
-# A duplicate named Dockerfile exists for registry/platform discovery (e.g. Smithery); see CONTAINERS.md.
+# This file is a duplicate of Containerfile for registry and platform compatibility.
+# Many registries (e.g. Smithery) and CI systems look for the filename "Dockerfile"
+# by convention. The build is identical; you can use either Docker or Podman to build.
+# See README "Containers" section and CONTAINERS.md for details.
+#
+# Build: docker build -t lemonsqueezy-mcp .   OR   podman build -f Dockerfile -t lemonsqueezy-mcp .
+
 # Multi-stage build for smaller image size
 FROM node:20-alpine AS builder
 
