@@ -1,6 +1,6 @@
 {
   "name": "lemonsqueezy-mcp-server",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "mcpName": "io.github.IntrepidServicesLLC/lemonsqueezy-mcp-server",
   "description": "Universal Semantic Bridge - Lemon Squeezy SDK as MCP Server with optional Salesforce CRM integration",
   "repository": {
