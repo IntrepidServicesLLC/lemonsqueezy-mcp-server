@@ -84,6 +84,8 @@ After restarting, ask your AI:
 
 If it works, you're done! 🎉
 
+This setup runs the trusted local operator entry point. It retains the full legacy tool catalog, including write operations. For a delegated read-only integration, use the separate [guarded connector guide](./docs/GUARDED_CONNECTOR.md). A host must supply the grant provider and initialize the SDK with a merchant-owned key matching its single `test` or `live` environment. Run the no-secret fixture example with `npm test -- src/examples/guarded-flow.test.ts`.
+
 ## 🆘 Common Issues
 
 **"Tools not showing up"**
@@ -240,5 +242,4 @@ Replace `us-east-1` with your region, `account` with your AWS account ID, and `y
 Save the MCP config file and restart your AI client completely.
 
 **That's it!** The server will automatically fetch credentials from AWS Secrets Manager when you use Salesforce tools.
-
 
