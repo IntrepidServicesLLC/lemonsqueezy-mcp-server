@@ -89,6 +89,8 @@ The `dist/index.js` stdio setup above is for a trusted local merchant operator. 
 
 For delegated, read-only access, a trusted host must create the separate guarded server with `createGuardedServer(provider, expectedEnvironment)`. The host supplies and verifies a scoped grant outside MCP tool arguments. The guarded server exposes only `get_billing_summary` and `get_subscription_status` when the grant permits them. See [guarded connector setup](./docs/GUARDED_CONNECTOR.md), the [exact tool catalog](./docs/GUARDED_TOOL_CATALOG.md), and [support and security reporting](./SUPPORT.md).
 
+For self-hosted remote callers, use the separate authenticated Streamable HTTP entry point and the [remote guarded setup and runnable example](./docs/REMOTE_GUARDED.md). The example includes an offline MCP client smoke test and an optional local check with your own Lemon Squeezy test-mode key. Its fixture is not a hosted identity or grant service.
+
 ---
 
 ## 🚀 Medium User Level: Basic Usage & Configuration

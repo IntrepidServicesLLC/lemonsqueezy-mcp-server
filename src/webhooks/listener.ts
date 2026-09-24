@@ -1,5 +1,5 @@
 import Fastify, { FastifyInstance } from "fastify";
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHash, createHmac, timingSafeEqual } from "crypto";
 import { config } from "../config.js";
 import { addPaymentEvent } from "../resources/payment-context.js";
 import { logger } from "../utils/logger.js";
@@ -19,20 +19,14 @@ export interface WebhookPayload {
   };
 }
 
-function verifyWebhookSignature(rawBody: string, signature: string, secret: string): boolean {
-  if (!secret) {
+function verifyWebhookSignature(rawBody: Buffer, signature: unknown, secret: string): boolean {
+  if (typeof signature !== "string" || !/^[a-f\d]{64}$/i.test(signature)) {
     return false;
   }
 
-  const hmac = createHmac("sha256", secret).update(rawBody).digest("hex");
+  const hmac = createHmac("sha256", secret).update(rawBody).digest();
   const signatureBuffer = Buffer.from(signature, "hex");
-  const hmacBuffer = Buffer.from(hmac, "hex");
-
-  if (signatureBuffer.length !== hmacBuffer.length) {
-    return false;
-  }
-
-  return timingSafeEqual(signatureBuffer, hmacBuffer);
+  return timingSafeEqual(signatureBuffer, hmac);
 }
 
 function parseWebhookEvent(payload: WebhookPayload): {
@@ -75,9 +69,13 @@ function parseWebhookEvent(payload: WebhookPayload): {
   };
 }
 
-export async function startWebhookServer(): Promise<FastifyInstance> {
-  if (webhookServer) {
-    return webhookServer;
+const DUPLICATE_TTL_MS = 10 * 60 * 1000;
+const MAX_RECENT_DELIVERIES = 1024;
+
+export function createWebhookServer(): FastifyInstance {
+  const secret = config.webhookSecret;
+  if (!secret?.trim()) {
+    throw new Error("Webhook signing secret is required before starting the listener");
   }
 
   const fastify = Fastify({
@@ -86,7 +84,8 @@ export async function startWebhookServer(): Promise<FastifyInstance> {
   });
 
   // Decorate request with rawBody
-  fastify.decorateRequest("rawBody", "");
+  fastify.decorateRequest("rawBody", null);
+  const recentDeliveries = new Map<string, number>();
 
   // Capture raw body before JSON parsing
   fastify.addContentTypeParser(
@@ -94,11 +93,10 @@ export async function startWebhookServer(): Promise<FastifyInstance> {
     { parseAs: "buffer", bodyLimit: 1048576 },
     (req, body, done) => {
       if (body instanceof Buffer) {
-        // Store raw body as string for signature verification
-        const rawBodyStr = body.toString("utf-8");
-        (req as any).rawBody = rawBodyStr;
+        // Keep the exact bytes received; JSON reserialization changes the HMAC input.
+        (req as typeof req & { rawBody: Buffer }).rawBody = body;
         try {
-          const json = JSON.parse(rawBodyStr);
+          const json = JSON.parse(body.toString("utf-8"));
           done(null, json);
         } catch (err) {
           done(err as Error, undefined);
@@ -111,25 +109,32 @@ export async function startWebhookServer(): Promise<FastifyInstance> {
 
   // Webhook endpoint
   fastify.post("/webhooks", async (request, reply) => {
-    const requestWithRawBody = request as typeof request & { rawBody?: string };
-    const rawBody = requestWithRawBody.rawBody || JSON.stringify(request.body);
-    const signature = (request.headers["x-signature"] as string) || "";
-    const eventName = (request.headers["x-event-name"] as string) || "";
+    const rawBody = (request as typeof request & { rawBody: Buffer | null }).rawBody;
+    const signature = request.headers["x-signature"];
+    const eventName = request.headers["x-event-name"];
 
-    // Verify signature if secret is configured
-    if (config.webhookSecret) {
-      if (!verifyWebhookSignature(rawBody, signature, config.webhookSecret)) {
-        reply.code(401).send({ error: "Invalid signature" });
-        return;
-      }
+    if (!rawBody || !verifyWebhookSignature(rawBody, signature, secret)) {
+      reply.code(401).send({ error: "Invalid signature" });
+      return;
     }
 
-    // Parse webhook payload
-    let payload: WebhookPayload;
-    try {
-      payload = JSON.parse(rawBody) as WebhookPayload;
-    } catch (error) {
-      reply.code(400).send({ error: "Invalid JSON payload" });
+    const payload = request.body as WebhookPayload;
+    if (!payload || typeof payload.meta?.event_name !== "string" ||
+        typeof payload.data?.type !== "string" || typeof payload.data?.id !== "string" ||
+        !payload.data.attributes || typeof payload.data.attributes !== "object" ||
+        Array.isArray(payload.data.attributes)) {
+      reply.code(400).send({ error: "Invalid webhook payload" });
+      return;
+    }
+
+    // Lemon Squeezy may retry a delivery. Keep only a bounded, short-lived digest set.
+    const now = Date.now();
+    for (const [digest, expiresAt] of recentDeliveries) {
+      if (expiresAt <= now) recentDeliveries.delete(digest);
+    }
+    const digest = createHash("sha256").update(rawBody).digest("hex");
+    if (recentDeliveries.has(digest)) {
+      reply.code(200).send({ received: true, duplicate: true });
       return;
     }
 
@@ -146,17 +151,31 @@ export async function startWebhookServer(): Promise<FastifyInstance> {
       amount: event.amount,
       message: event.message,
     });
+    if (recentDeliveries.size >= MAX_RECENT_DELIVERIES) {
+      recentDeliveries.delete(recentDeliveries.keys().next().value!);
+    }
+    recentDeliveries.set(digest, now + DUPLICATE_TTL_MS);
 
-    logger.info({ eventName, orderId: event.orderId, customerEmail: event.customerEmail }, "Webhook received");
+    logger.info({ eventName, orderId: event.orderId }, "Webhook received");
 
     // Return 200 to acknowledge receipt
-    reply.code(200).send({ received: true, event: eventName });
+    reply.code(200).send({ received: true, event: typeof eventName === "string" ? eventName : event.eventName });
   });
 
   // Health check endpoint
   fastify.get("/health", async () => {
     return { status: "ok", service: "lemonsqueezy-webhook-listener" };
   });
+
+  return fastify;
+}
+
+export async function startWebhookServer(): Promise<FastifyInstance> {
+  if (webhookServer) {
+    return webhookServer;
+  }
+
+  const fastify = createWebhookServer();
 
   try {
     await fastify.listen({ port: config.webhookPort, host: "0.0.0.0" });
