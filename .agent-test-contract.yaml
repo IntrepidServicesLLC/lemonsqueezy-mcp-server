@@ -1,0 +1,28 @@
+version: 1
+description: Offline verification for the Lemon Squeezy MCP connector
+runtime:
+  node: ">=18.0.0"
+  package_manager: npm
+  lockfile: package-lock.json
+install:
+  command: npm ci
+  required_on_fresh_checkout: true
+fixtures: []
+environment:
+  live_lemon_squeezy_key_required: false
+  external_services_required: false
+  note: Config tests mock dotenv and the Lemon Squeezy SDK; they never read a local .env or call the API.
+checks:
+  focused_auth:
+    command: npm test -- src/config.test.ts src/connector
+    required: true
+  build:
+    command: npm run build
+    required: true
+  full_suite:
+    command: npm test
+    required: true
+execution_order:
+  - focused_auth
+  - build
+  - full_suite

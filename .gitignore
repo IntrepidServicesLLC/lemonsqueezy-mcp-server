@@ -37,6 +37,7 @@ yarn-error.log*
 # Testing
 coverage/
 .nyc_output/
+.agent/runs/
 
 # Temporary files
 *.tmp

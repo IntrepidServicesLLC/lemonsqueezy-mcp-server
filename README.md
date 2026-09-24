@@ -83,6 +83,12 @@ Refer to your client's documentation for adding MCP servers. The server runs via
 
 After configuring, restart your AI editor and try asking: *"Show me my last 5 orders."*
 
+### Trusted local and guarded access
+
+The `dist/index.js` stdio setup above is for a trusted local merchant operator. It exposes the full legacy catalog, including tools that can change Lemon Squeezy data. Do not use that entry point as a customer-facing or delegated agent connector.
+
+For delegated, read-only access, a trusted host must create the separate guarded server with `createGuardedServer(provider, expectedEnvironment)`. The host supplies and verifies a scoped grant outside MCP tool arguments. The guarded server exposes only `get_billing_summary` and `get_subscription_status` when the grant permits them. See [guarded connector setup](./docs/GUARDED_CONNECTOR.md), the [exact tool catalog](./docs/GUARDED_TOOL_CATALOG.md), and [support and security reporting](./SUPPORT.md).
+
 ---
 
 ## 🚀 Medium User Level: Basic Usage & Configuration
