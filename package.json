@@ -19,7 +19,10 @@
     "ENV_EXAMPLE.md",
     "SUPPORT.md",
     "docs/GUARDED_CONNECTOR.md",
-    "docs/GUARDED_TOOL_CATALOG.md"
+    "docs/GUARDED_TOOL_CATALOG.md",
+    "docs/REMOTE_GUARDED.md",
+    "docs/WEBHOOK_SECURITY.md",
+    "examples/remote-guarded"
   ],
   "scripts": {
     "build": "tsc",

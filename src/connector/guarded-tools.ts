@@ -8,6 +8,13 @@ const idSchema = z.number().int().positive().safe();
 const billingArgs = z.object({ customerId: idSchema }).strict();
 const subscriptionArgs = z.object({ subscriptionId: idSchema }).strict();
 
+export interface GuardedBillingReader {
+  getCustomer: typeof getCustomer;
+  getSubscription: typeof getSubscription;
+}
+
+const sdkReader: GuardedBillingReader = { getCustomer, getSubscription };
+
 export const GUARDED_TOOLS = {
   GET_BILLING_SUMMARY: "get_billing_summary",
   GET_SUBSCRIPTION_STATUS: "get_subscription_status",
@@ -86,13 +93,17 @@ export async function handleGuardedToolCall(
   args: unknown,
   provider: TrustedGrantProvider | undefined,
   expectedEnvironment: "test" | "live",
+  reader: GuardedBillingReader = sdkReader,
 ) {
   try {
     // Tool discovery is not an authorization boundary. Deny unlisted names here.
     if (name === GUARDED_TOOLS.GET_BILLING_SUMMARY) {
       const { customerId } = billingArgs.parse(args);
       const grant = await authorizeToolCall(name, provider, expectedEnvironment);
-      const result = await getCustomer(customerId);
+      if (grant.customerScope.kind === "customer_ids" && !grant.customerScope.ids.includes(customerId)) {
+        throw new AuthorizationError();
+      }
+      const result = await reader.getCustomer(customerId);
       if (result.error || !result.data) throw new AuthorizationError();
       const attributes = customerAttributes.parse(result.data.data.attributes);
       const returnedCustomerId = parseReturnedId(result.data.data.id, customerId);
@@ -114,7 +125,7 @@ export async function handleGuardedToolCall(
     if (name === GUARDED_TOOLS.GET_SUBSCRIPTION_STATUS) {
       const { subscriptionId } = subscriptionArgs.parse(args);
       const grant = await authorizeToolCall(name, provider, expectedEnvironment);
-      const result = await getSubscription(subscriptionId);
+      const result = await reader.getSubscription(subscriptionId);
       if (result.error || !result.data) throw new AuthorizationError();
       const attributes = subscriptionAttributes.parse(result.data.data.attributes);
       const returnedSubscriptionId = parseReturnedId(result.data.data.id, subscriptionId);
